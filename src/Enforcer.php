@@ -2,15 +2,17 @@
 
 namespace teamones\casbin;
 
-use Casbin\Enforcer as BaseEnforcer;
 use Casbin\Model\Model;
+use Casbin\Persist\Watcher;
 use InvalidArgumentException;
+use Casbin\Enforcer as BaseEnforcer;
+use Casbin\Exceptions\CasbinException;
 use teamones\casbin\adapters\DatabaseAdapter;
 
 /**
  * Enforcer
  */
-class Enforcer
+class Enforcer extends BaseEnforcer
 {
 
     /**
@@ -20,10 +22,10 @@ class Enforcer
 
     /**
      * @param string $type
-     * @return \Casbin\Enforcer|null
-     * @throws \Casbin\Exceptions\CasbinException
+     * @return BaseEnforcer|null
+     * @throws CasbinException
      */
-    public static function instance($type = 'default')
+    public static function instance(string $type = 'default')
     {
         if (empty(self::$_instance)) {
 
@@ -61,16 +63,25 @@ class Enforcer
                     break;
             }
 
-            self::$_instance = new BaseEnforcer($model, $adapter, false);
+            self::$_instance = new self($model, $adapter, false);
         }
         return self::$_instance;
+    }
+
+    /**
+     * 获得watcher
+     * @return Watcher|null
+     */
+    public function getWatcher()
+    {
+        return $this->watcher;
     }
 
     /**
      * @param $name
      * @param $arguments
      * @return mixed
-     * @throws \Casbin\Exceptions\CasbinException
+     * @throws CasbinException
      */
     public static function __callStatic($name, $arguments)
     {
